@@ -34,7 +34,8 @@ def save_to_csv(pool, filename="sidewinder_strands.csv"):
                 writer.writerow([cds_idx, 'bottom', strand_idx, strand])
 
 # Settings 
-oligo_length = 150 
+#oligo_length = 96 
+oligo_length = 150
 barcode_length = 18 
 fragment_length = oligo_length - 2 * barcode_length
 max_final_c_domain_length = oligo_length - barcode_length
@@ -43,9 +44,11 @@ toehold_search_range = 15
 identity_threshold = 0.6
 args = oligo_length, barcode_length, fragment_length, max_final_c_domain_length, toehold_length, toehold_search_range, identity_threshold
 
-model =nu.Model(material="dna", celsius=50)
+model =nu.Model(material="dna", celsius=50, sodium=0.154, magnesium=0.01)
 ncores = mp.cpu_count()
 conc = 1e-8
+
+count = 1000
 
 # check for correct call and filenmae
 if len(sys.argv) < 3:
@@ -79,7 +82,7 @@ if __name__ == "__main__":
         toehold_idx_seps.append(len(all_putative_toeholds))
 
     # first judge the the toeholds based on string metrics
-    toe_combinations = toehold_combinations(all_putative_toeholds, args, int(1e2))
+    toe_combinations = toehold_combinations(all_putative_toeholds, args, count)
     toe_string_data = evaluate_combinations_string(toe_combinations, ncores)
     # For top 20% 
     n_top = int(np.ceil(len(toe_string_data) * 0.2))
@@ -95,11 +98,11 @@ if __name__ == "__main__":
     toe_thermo_data = evaluate_combinations_thermo(top_toehold_combinations, model, ncores, conc)
     weights = {
         'max_offtarget_probability': (2.0,0),
-        'average_offtarget_probability': (2.0,0),
+        'average_offtarget_probability': (1.0,0),
         'max_on_target_defect': (1.0,0),
-        'average_on_target_defect': (1.0,0),
+        'average_on_target_defect': (0.5,0),
         'min_off_target_defect': (1.0,1),
-        'average_off_target_defect': (1.0,1)
+        'average_off_target_defect': (0.5,1)
     }
     best_toe_id = rank_combinations_weighted(toe_thermo_data, weights)
     toeholds = top_toehold_combinations[best_toe_id]
@@ -109,7 +112,7 @@ if __name__ == "__main__":
     
     # generate barcodes
     print("Generating barcodes")
-    barcode_sets = generate_putative_barcodes(toeholds_seqs, 7,9,barcode_length,int(1e2))
+    barcode_sets = generate_putative_barcodes(toeholds_seqs, 7,9,barcode_length,count)
     barcode_string_data = evaluate_barcodes_string(barcode_sets, toeholds_seqs, ncores)
 
     n_top = int(np.ceil(len(barcode_string_data) * 0.2))
@@ -123,13 +126,13 @@ if __name__ == "__main__":
     barcode_data = evaluate_barcodes_thermo(top_barcode_combinations, toeholds_seqs, model, ncores, conc)
     weights = {
                 'min_ontarget_probability': (0.5,1), 
-                'average_ontarget_probability': (0.5,1),
+                'average_ontarget_probability': (0.25,1),
                 'max_offtarget_probability': (2.0,0),
-                'average_offtarget_probability': (2.0,0),
+                'average_offtarget_probability': (1.0,0),
                 'max_on_target_defect': (2.0,0),
-                'average_on_target_defect': (2.0,0),
+                'average_on_target_defect': (1.0,0),
                 'min_off_target_defect': (0.5,1),
-                'average_off_target_defect': (0.5,1)
+                'average_off_target_defect': (0.25,1)
             }
     best_barcodeid = rank_combinations_weighted(barcode_data, weights)
     print(barcode_string_data[top_20_percent_indices[best_barcodeid]])
@@ -137,7 +140,7 @@ if __name__ == "__main__":
     
     # generate pairs
     print("Generating pairs")
-    pairings_tuple = generate_pairings(toeholds_seqs,barcodes,num_sets=int(1e2))
+    pairings_tuple = generate_pairings(toeholds_seqs,barcodes,num_sets=count)
     pairings = [[pairing[0]+pairing[1] for pairing in pairings_set] for pairings_set in pairings_tuple]
     assert(len(pairings) == len(pairings_tuple))
     evaluated_string_pairings = evaluate_pairings_string(pairings, ncores)
@@ -150,7 +153,7 @@ if __name__ == "__main__":
     pairing_data = evaluate_pairings_thermo(top_pairings, model, ncores)
     weights = {
         'structure_defect': (1.0, 0),
-        'average_structure_defect': (1.0, 0),
+        'average_structure_defect': (0.5, 0),
     }
     best_pair_id = rank_combinations_weighted(pairing_data, weights)
     best_pair = top_pairings_tuple[best_pair_id]

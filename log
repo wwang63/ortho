@@ -1,34 +1,28 @@
 Generating toeholds
-680
-edit_distance_ranks
-65
-offtarget_prob_ranks
-103
-on_target_defect_ranks
-116
-off_target_defect_ranks
-75
-raw data
-(2.98486571124462, 0.006298181673754899, 0.3463558331271481, 0.3515067525769767)
-Generating barcodes
-generated 6776 barcodes to sample from
-each sampled set contains 144 barcodes
-Best combination ID: 690
+Best combination ID: 119
 
 Individual ranks:
-edit_distance: 58
-ontarget_prob: 230
-offtarget_prob: 87
-on_target_defect: 34
-off_target_defect: 23
+min_edit_distance: 9
+average_edit_distance: 15
 
 Raw data for best combination:
-(5.0, 0.24362696736008366, 0.020144189757533144, 0.4139297259003857, 0.56363172293337)
+(1.4111122905071873, 10.65998101773134)
+Generating barcodes
+generated 1041 barcodes to sample from
+each sampled set contains 666 barcodes
+Best combination ID: 48
+
+Individual ranks:
+min_edit_distance: 2
+average_edit_distance: 1
+
+Raw data for best combination:
+(4.0, 10.237625595520333)
 Generating pairs
-831
-substring_lengths_ranks
-5
-structure_defects_ranks
-1
-raw data
-(9, 0.3552368709305955)
+Best combination ID: 0
+
+Individual ranks:
+longest_common_substring: 1
+
+Raw data for best combination:
+[11]

@@ -1,0 +1,61 @@
+Generating toeholds
+Best combination ID: 906
+
+Individual ranks:
+min_edit_distance: 5
+average_edit_distance: 41
+
+Raw data for best combination:
+(2.7789917316786297, 10.642612105115923)
+Best combination ID: 12
+
+Individual ranks:
+max_offtarget_probability: 6
+average_offtarget_probability: 3
+max_on_target_defect: 23
+average_on_target_defect: 66
+min_off_target_defect: 98
+average_off_target_defect: 50
+
+Raw data for best combination:
+(0.025597368480140797, 8.55496918972069e-06, 0.42562305503520115, 0.14377468214707054, 0.17520952374637916, 0.9678276339741115)
+(0.025597368480140797, 8.55496918972069e-06, 0.42562305503520115, 0.14377468214707054, 0.17520952374637916, 0.9678276339741115)
+(1.513417119032592, 10.628512202199676)
+Generating barcodes
+generated 2432 barcodes to sample from
+each sampled set contains 390 barcodes
+Best combination ID: 663
+
+Individual ranks:
+min_edit_distance: 1
+average_edit_distance: 7
+
+Raw data for best combination:
+(5.0, 10.39133873838244)
+Best combination ID: 23
+
+Individual ranks:
+min_ontarget_probability: 11
+average_ontarget_probability: 26
+max_offtarget_probability: 33
+average_offtarget_probability: 64
+max_on_target_defect: 8
+average_on_target_defect: 12
+min_off_target_defect: 27
+average_off_target_defect: 114
+
+Raw data for best combination:
+(0.14324021964302389, 0.9555401923712222, 0.18600290295047353, 1.8015340496477066e-05, 0.5286444790070504, 0.18287868062320223, 0.4381061035300397, 0.9866643678405186)
+(5.0, 10.348309274273285)
+Generating pairs
+Best combination ID: 97
+
+Individual ranks:
+structure_defect: 7
+average_structure_defect: 5
+
+Raw data for best combination:
+(0.4597552204151047, 0.212916942259818)
+10
+(0.4597552204151047, 0.212916942259818)
+Generating final sidewinder strands

@@ -100,7 +100,7 @@ def bar_and_toe_evaluation_string(data):
     
     # generate evaluation metric data
     # only calcuate alignment data for the barcode domains
-    a_matrix = alignment_matrix(library[:num_bar], duplex=0)
+    a_matrix = alignment_matrix(library[:num_bar], duplex=1)
     np.fill_diagonal(a_matrix, np.inf)
 
     min_edit_distance = np.min(a_matrix)

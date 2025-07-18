@@ -867,6 +867,9 @@ def alignment_matrix(library, duplex):
                 vals = []
                 vals.append(edit_distance(library[i], library[j]))
                 vals.append(edit_distance(library[i], nu.reverse_complement(library[j])))
+                vals.append(edit_distance(nu.reverse_complement(library[i]), library[j]))
+                vals.append(edit_distance(nu.reverse_complement(library[i]), 
+                                          nu.reverse_complement(library[j])))
                 val = np.min(vals)
             similar[i][j] = val
             similar[j][i] = val

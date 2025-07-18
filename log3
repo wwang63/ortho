@@ -1,0 +1,28 @@
+Generating toeholds
+Best combination ID: 25
+
+Individual ranks:
+min_edit_distance: 1
+average_edit_distance: 30
+
+Raw data for best combination:
+(1.3678794411714423, 10.59754001887254)
+Generating barcodes
+generated 10396 barcodes to sample from
+each sampled set contains 1814 barcodes
+Best combination ID: 676
+
+Individual ranks:
+min_edit_distance: 1
+average_edit_distance: 4
+
+Raw data for best combination:
+(4.0, 10.422676236977702)
+Generating pairs
+Best combination ID: 5
+
+Individual ranks:
+longest_common_substring: 1
+
+Raw data for best combination:
+[12]
