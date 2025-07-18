@@ -64,6 +64,11 @@ model =nu.Model(material="dna", celsius=50, sodium=0.154, magnesium=0.01)
 ncores = mp.cpu_count()
 conc = 1e-8
 
+q = 7
+k = 9
+
+count = 1000
+
 # check for correct call and filenmae
 if len(sys.argv) < 3:
     print("Usage: python thermo_gen.py <filename to read> <filename to save>")
@@ -89,7 +94,6 @@ if __name__ == "__main__":
     string_pool = []
     toehold_idx_seps = [0]
     all_putative_toeholds = []
-    count = 1000
 
     # generate the set of all toeholds for all CDSs
     print("Generating toeholds")
@@ -110,7 +114,7 @@ if __name__ == "__main__":
 
     # generate barcodes
     print("Generating barcodes")
-    barcode_sets = generate_putative_barcodes(toeholds_seqs, 9,9,barcode_length, count)
+    barcode_sets = generate_putative_barcodes(toeholds_seqs, q,k,barcode_length, count)
     barcode_data = evaluate_barcodes_string(barcode_sets, toeholds_seqs, ncores)
     weights = {
             'min_edit_distance': (1.0,1),

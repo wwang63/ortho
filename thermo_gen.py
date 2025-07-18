@@ -48,6 +48,9 @@ model =nu.Model(material="dna", celsius=50, sodium=0.154, magnesium=0.01)
 ncores = mp.cpu_count()
 conc = 1e-8
 
+q = 7
+k = 9
+
 count = 1000
 
 # check for correct call and filenmae
@@ -112,7 +115,7 @@ if __name__ == "__main__":
     
     # generate barcodes
     print("Generating barcodes")
-    barcode_sets = generate_putative_barcodes(toeholds_seqs, 7,9,barcode_length,count)
+    barcode_sets = generate_putative_barcodes(toeholds_seqs, q,k,barcode_length,count)
     barcode_string_data = evaluate_barcodes_string(barcode_sets, toeholds_seqs, ncores)
 
     n_top = int(np.ceil(len(barcode_string_data) * 0.2))

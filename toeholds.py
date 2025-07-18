@@ -116,8 +116,8 @@ def alignment_toe_sense_antisense_matrix(library):
     for i in range(len(similar)):
         for j in range(i,len(similar)):
             vals = []
-            vals.append(edit_distance_with_weighted_score(library[i], library[j]), exponential_weight)
-            vals.append(edit_distance_with_weighted_score(library[j], library[i]), exponential_weight)
+            vals.append(edit_distance_with_weighted_score(library[i], library[j], exponential_weight))
+            vals.append(edit_distance_with_weighted_score(library[j], library[i], exponential_weight))
             val = np.min(vals)
             similar[i][j] = val
             similar[j][i] = val
