@@ -3,6 +3,8 @@ import numpy as np
 from tqdm import tqdm
 import nupack as nu
 
+from similarity_utils import sim_matrix
+
 """
 Compute expected on-target concentration for a given sequence via NUPACK analysis, when 
 considering all max size = 2 possible structures. 
@@ -277,52 +279,9 @@ def nupack_matrix_mp(library, model, conc, ncores, duplex):
 
     return np_probs, on_probs
 
-""" 
-Generates a character similarity matrix. 
-
-If designing for a duplex library, each entry [i,j] is the maximum number of matching 
-characters among:
-1. between seq i and seq j 
-2. between seq i and the reverse complement of seq j
-3. between the reverse complement of seq i and seq j
-4. between the reverse complement of seq i and the reverse complement of seq j
-
-If designing for a single stranded library, each entry [i,j] is the number of matching 
-characters between seq i and seq j.
-
-Args:
-    library: list of seqs
-    duplex: Whether we are designing for a duplex (1) or single stranded library (0)
-    
-Returns:
-    similar: NxN numpy array of character similarity scores
 """
-def sim_matrix(library, duplex):
-    similar = np.zeros((len(library),len(library)))
-    for i in tqdm(range(len(similar))):
-        for j in range(i,len(similar)):
-            if not duplex:
-                val = sum(map(str.__eq__, library[i], library[j]))
-            else: 
-                # get highest similarity with all 4 possible combinations of seqs i and j
-                # by considering their reverse complements also
-                vals = []
-                vals.append(sum(map(str.__eq__, library[i], library[j])))
-                vals.append(sum(map(str.__eq__, library[i], 
-                                    nu.reverse_complement(library[j]))))
-                vals.append(sum(map(str.__eq__, nu.reverse_complement(library[i]), 
-                                    library[j])))
-                vals.append(sum(map(str.__eq__, nu.reverse_complement(library[i]), 
-                                    nu.reverse_complement(library[j]))))
-                val = np.max(vals)
-            similar[i][j] = val
-            similar[j][i] = val
-    
-    return similar
-
-""" 
-Similarity optimization. Removes sequences from library and probability matrix that 
-are too similar above a specified threshold, threshold_SIM. 
+Similarity optimization. Removes sequences from library and probability matrix that
+are too similar above a specified threshold, threshold_SIM.
 
 At a high level, we find pairs of sequences that are too similar and remove the one with 
 the highest similarity with some other sequence. (If equal, remove at random). We repeat 

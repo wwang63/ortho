@@ -3,6 +3,7 @@ import nupack as nu
 from seqwalk import design
 import multiprocessing
 from orthogonal import *
+from timing_utils import TimingRecorder, configure_start_method
 
 # denote single stranded setting
 duplex = 0
@@ -41,29 +42,31 @@ threshold_ON = 0.7
 threshold_OFF = 0.1
 
 if __name__ == "__main__":
-    multiprocessing.set_start_method("forkserver") 
-    # in case we use linux in which case the default start method is fork
-    # note that fork yields issues due to pickle in multiprocessing
-    print("STEP 1/6: Generating SSM Hamiltonian Set\n")
-    library = design.max_size(l, k, alphabet="ACGT", RCfree=duplex)
-    print_library_size(library)
+    configure_start_method(verbose=True)
+    timer = TimingRecorder(baseline_path="_single_timings.json", autosave=True)
 
-    print("STEP 2/6: Similarity Optimization\n")
-    library = sim_optimization(library, threshold_SIM, reporting, duplex)
-    print_library_size(library)
-                
-    print("STEP 3/6: Generating Thermodynamic Complex Probabilities\n")
-    nu_mat, on_t = nupack_matrix_mp(library, my_model, conc, ncores, duplex)
+    with timer.time_block("STEP 1/6: Generating SSM Hamiltonian Set"):
+        library = design.max_size(l, k, alphabet="ACGT", RCfree=duplex)
+        print_library_size(library)
 
-    print("STEP 4/6: ON-Target Optimization\n")
-    library, on_t, nu_mat = on_target_optimization(on_t, library, threshold_ON, 
-                                                   reporting, nu_mat)
-    print_library_size(library)
+    with timer.time_block("STEP 2/6: Similarity Optimization"):
+        library = sim_optimization(library, threshold_SIM, reporting, duplex)
+        print_library_size(library)
 
-    print("STEP 5/6: OFF-Target Optimization\n")
-    library, on_t, nu_mat = off_target_optimization(nu_mat, library, threshold_OFF, 
-                                                    reporting, on_t)
-    print_library_size(library)
+    with timer.time_block("STEP 3/6: Generating Thermodynamic Complex Probabilities"):
+        nu_mat, on_t = nupack_matrix_mp(library, my_model, conc, ncores, duplex)
 
-    print("STEP 6/6: Saving Library\n")
-    save_lib(library, save_file)
+    with timer.time_block("STEP 4/6: ON-Target Optimization"):
+        library, on_t, nu_mat = on_target_optimization(on_t, library, threshold_ON,
+                                                       reporting, nu_mat)
+        print_library_size(library)
+
+    with timer.time_block("STEP 5/6: OFF-Target Optimization"):
+        library, on_t, nu_mat = off_target_optimization(nu_mat, library, threshold_OFF,
+                                                        reporting, on_t)
+        print_library_size(library)
+
+    with timer.time_block("STEP 6/6: Saving Library"):
+        save_lib(library, save_file)
+
+    timer.report()
