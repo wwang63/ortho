@@ -9,6 +9,7 @@ import pickle
 import nupack as nu
 from seqwalk import design
 from orthogonal import *
+from timing_utils import TimingRecorder, configure_start_method
 
 save_message = "Do you wish to presently save your library to a user-accessible file? (0:no, 1:yes)\n"
 
@@ -28,12 +29,10 @@ def user_save(library, exit):
         sys.exit(0)
 
 if __name__ == "__main__":
-    multiprocessing.set_start_method("forkserver") 
-    # in case we use linux in which case the default start method is fork
-    # note that fork yields issues due to pickle in multiprocessing
-    
-    print("\nYou may notice .npy and .pkl files being generated in your working" + 
-          " directory. These are used to reload information" + 
+    configure_start_method(verbose=True)
+
+    print("\nYou may notice .npy and .pkl files being generated in your working" +
+          " directory. These are used to reload information" +
           " from the last previous instance of the program so you don't have to reinput" +
           " commands. They are required for the optimize and filterTm comamnds.\n")
     
@@ -94,22 +93,24 @@ if __name__ == "__main__":
             # ^^ MODIFY W/ FURTHER SALT SPECIFICATIONS IF DESIRED (see nupack documentation)
             
             # Run SSM Hamiltonian Set generation via Seqwalk
-            print("STEP 1/3: Generating SSM Hamiltonian Set\n")
-            library = design.max_size(l, k, alphabet="ACGT", RCfree=duplex)
-                
-            # Similarity optimization
-            print("STEP 2/3: Similarity Optimization\n")
-            print(f"Similarity Threshold: {threshold_SIM}\n")
-            library = sim_optimization(library, threshold_SIM, reporting, duplex)
-            with open('_ssmlibrary.pkl','wb') as f:
-                pickle.dump(library, f)
-            
-            # Generate probability matrix
-            print("\nSTEP 3/3: Generating Probability Matrix\n")
-            nu_mat, on_t = nupack_matrix_mp(library, my_model, conc, ncores, duplex)
-            np.save("_ssmnumat.npy", nu_mat)
-            np.save("_ssmon_t.npy", on_t)
+            timer = TimingRecorder(baseline_path="_interactive_init_timings.json", autosave=True)
+
+            with timer.time_block("STEP 1/3: Generating SSM Hamiltonian Set"):
+                library = design.max_size(l, k, alphabet="ACGT", RCfree=duplex)
+
+            with timer.time_block("STEP 2/3: Similarity Optimization"):
+                print(f"Similarity Threshold: {threshold_SIM}\n")
+                library = sim_optimization(library, threshold_SIM, reporting, duplex)
+                with open('_ssmlibrary.pkl','wb') as f:
+                    pickle.dump(library, f)
+
+            with timer.time_block("STEP 3/3: Generating Probability Matrix"):
+                nu_mat, on_t = nupack_matrix_mp(library, my_model, conc, ncores, duplex)
+                np.save("_ssmnumat.npy", nu_mat)
+                np.save("_ssmon_t.npy", on_t)
+
             print(f"\nFinal library size: {len(library)}\n")
+            timer.report()
             
             to_save = int(input(save_message)) 
             if to_save:
@@ -127,19 +128,20 @@ if __name__ == "__main__":
             # On target optimization threshold
             threshold_ON = float(input("<On-Target Probability Threshold> "))
                         
-            # On-target optimization
-            print("STEP 1/2: On-Target Optimization\n")
-            print(f"On-Target Threshold: {threshold_ON}\n")
-            library, on_t, nu_mat  = on_target_optimization(on_t, library, threshold_ON, 
-                                                   reporting, nu_mat)
-            
-            # Off-target optimization 
-            print("STEP 2/2: Off-Target Optimization\n")
-            print(f"Off-Target Threshold: {threshold_OFF}\n")
-            library, on_t, nu_mat  = off_target_optimization(nu_mat, library, threshold_OFF, 
-                                                    reporting, on_t)
-            
+            timer = TimingRecorder(baseline_path="_interactive_opt_timings.json", autosave=True)
+
+            with timer.time_block("STEP 1/2: On-Target Optimization"):
+                print(f"On-Target Threshold: {threshold_ON}\n")
+                library, on_t, nu_mat  = on_target_optimization(on_t, library, threshold_ON,
+                                                       reporting, nu_mat)
+
+            with timer.time_block("STEP 2/2: Off-Target Optimization"):
+                print(f"Off-Target Threshold: {threshold_OFF}\n")
+                library, on_t, nu_mat  = off_target_optimization(nu_mat, library, threshold_OFF,
+                                                        reporting, on_t)
+
             print(f"\nFinal library size: {len(library)}\n")
+            timer.report()
             
             if duplex: 
                 with open('_optlibrary.pkl','wb') as f:
@@ -173,24 +175,25 @@ if __name__ == "__main__":
             # Melting temperature optimization delta
             delta = int(input("<Off and On Target Desired Tm Difference>"))
                     
-            print("STEP 1/1: Melting Temperatature Optimization\n")
-            # Combine library with its reverse complements only once
-            library_with_complements = []
-            for seq in library:
-                library_with_complements.append(seq)
-                library_with_complements.append(nu.reverse_complement(seq))
-            # Make the melting temperature matrix
-            tm_mat = tm_mp(library_with_complements, low, high, grain, conc, ncores)
-            print(tm_mat)
-            # optimize
-            library = tm_optimization(library, tm_mat, delta, reporting)
-            
+            timer = TimingRecorder(baseline_path="_interactive_filter_tm_timings.json", autosave=True)
+
+            with timer.time_block("STEP 1/1: Melting Temperature Optimization"):
+                library_with_complements = []
+                for seq in library:
+                    library_with_complements.append(seq)
+                    library_with_complements.append(nu.reverse_complement(seq))
+                tm_mat = tm_mp(library_with_complements, low, high, grain, conc, ncores)
+                print(tm_mat)
+                library = tm_optimization(library, tm_mat, delta, reporting)
+
             with open('_tmfilterlibrary.pkl','wb') as f:
                 pickle.dump(library, f)
             np.save("_tmmat.npy", tm_mat)
-            to_save = int(input(save_message)) 
+            to_save = int(input(save_message))
             if to_save:
                 user_save(library, 0)
+
+            timer.report()
         
         elif command == "tmRange":
             tm_mat = np.load("_tmmat.npy")
@@ -199,9 +202,13 @@ if __name__ == "__main__":
             
             my_range = float(input("<Melting Temperature Max Desired Range (°C)> "))
             
-            library, best_range = tm_bounds_optimization(library, tm_mat, my_range, reporting)
-            
+            timer = TimingRecorder(baseline_path="_interactive_tm_range_timings.json", autosave=True)
+
+            with timer.time_block("STEP 1/1: Melting Temperature Range Optimization"):
+                library, best_range = tm_bounds_optimization(library, tm_mat, my_range, reporting)
+
             #program complete for duplex generation
             print("Duplex library generation complete. Please save.")
             print(f"\nFinal library size: {len(library)}\n")
             user_save(library,0)
+            timer.report()
